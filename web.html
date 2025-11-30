@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hey potato, will you be mine? — Proposal</title>
+  <style>
+    :root{
+      --bg:#fff7f2;
+      --card:#ffffff;
+      --accent:#ff6b6b;
+      --accent2:#ffb86b;
+      --muted:#6b6b6b;
+      --glass: rgba(255,255,255,0.7);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial;background:linear-gradient(135deg,var(--bg), #fff0f5 60%);
+    }
+    .wrap{
+      width:92%;max-width:760px;background:var(--card);border-radius:18px;padding:28px;box-shadow:0 10px 30px rgba(0,0,0,0.08);text-align:center;position:relative;overflow:hidden;
+    }
+    h1{font-size:28px;margin:6px 0 6px;color:#3b3b3b}
+    p.lead{color:var(--muted);margin:0 0 18px}
+
+    .question{
+      font-size:20px;padding:18px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,235,235,0.6));margin-bottom:18px;display:inline-block;
+    }
+
+    .buttons{
+      display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin-top:12px;
+    }
+
+    button.action{
+      min-width:120px;padding:14px 18px;border-radius:12px;border:0;font-weight:700;font-size:16px;cursor:pointer;transition:transform .12s ease,box-shadow .12s ease;box-shadow:0 6px 18px rgba(0,0,0,0.06);
+    }
+    button#yes{background:linear-gradient(90deg,var(--accent),var(--accent2));color:white}
+    button#no{background:#fff;border:2px solid #eee;color:#333}
+
+    button.action:active{transform:scale(.98)}
+
+    /* small footer area for messages */
+    .result{
+      margin-top:22px;min-height:70px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px
+    }
+
+    .hidden{display:none}
+
+    /* playful hint */
+    .hint{font-size:12px;color:#9b9b9b}
+
+    /* confetti pieces */
+    .confetti-piece{position:absolute;width:10px;height:14px;opacity:0;transform-origin:center;}
+
+    /* mobile friendly */
+    @media (max-width:480px){h1{font-size:20px}.question{font-size:16px}button.action{min-width:100px;padding:12px 14px}}
+  </style>
+</head>
+<body>
+  <div class="wrap" id="wrap">
+    <h1>Hey potato, will you be mine?</h1>
+    <p class="lead">Click your choice ❤️</p>
+
+    <div class="question">Hey potato, will you be my life partner❤️?</div>
+
+    <div class="buttons" id="buttons">
+      <button class="action" id="yes">Yes</button>
+      <button class="action" id="no">No</button>
+    </div>
+
+    <div class="result" id="result"></div>
+
+    <div class="hint">Tip: Don’t try clicking No… it’s shy like me when I see you 😳❤️😉</div>
+  </div>
+
+  <script>
+    // Elements
+    const yesBtn = document.getElementById('yes');
+    const noBtn = document.getElementById('no');
+    const result = document.getElementById('result');
+    const wrap = document.getElementById('wrap');
+
+    // Utility: random integer
+    const rand = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
+
+    // Keep count of how many times 'no' was chased
+    let dodgeCount = 0;
+
+    // Function: move the No button to a random place inside the wrap
+    function moveNoButton(animated=true){
+      dodgeCount++;
+      const parentRect = wrap.getBoundingClientRect();
+      const btnRect = noBtn.getBoundingClientRect();
+
+      // Compute safe area to place button
+      const padding = 12;
+      const maxX = parentRect.width - btnRect.width - padding;
+      const maxY = parentRect.height - btnRect.height - padding;
+
+      // pick a random spot
+      const x = rand(padding, Math.max(padding, Math.floor(maxX)));
+      const y = rand(padding + 60, Math.max(padding, Math.floor(maxY))); // push below header
+
+      // apply absolute positioning by converting wrap to relative
+      noBtn.style.position = 'absolute';
+      noBtn.style.left = x + 'px';
+      noBtn.style.top = y + 'px';
+      noBtn.style.transition = animated ? 'all 300ms cubic-bezier(.2,.9,.2,1)' : 'none';
+
+      // If dodged many times, show playful message or move it off-screen
+      if(dodgeCount >= 8){
+        // send it out of view and show little joke
+        noBtn.style.transition = 'all 500ms ease-in-out';
+        noBtn.style.left = (parentRect.width + 200) + 'px';
+        noBtn.style.top = (parentRect.height + 200) + 'px';
+        setTimeout(()=>{
+          showNoPlace();
+        },550);
+      }
+    }
+
+    // On hover - move away (desktop)
+    noBtn.addEventListener('mouseenter', (e)=>{
+      moveNoButton(true);
+    });
+
+    // On click - also move or escape
+    noBtn.addEventListener('click', (e)=>{
+      // stop click if it's out of view
+      e.preventDefault();
+      if(dodgeCount < 8){
+        moveNoButton(true);
+      } else {
+        showNoPlace();
+      }
+    });
+
+    // On Yes click - show loving message with tiny animation
+    yesBtn.addEventListener('click', ()=>{
+      result.innerHTML = '';
+      confettiBurst();
+      const msg = document.createElement('div');
+      msg.innerHTML = '<strong>Yes!!</strong> ❤️ I love you Papa!';
+      msg.style.fontSize = '18px';
+      msg.style.color = '#333';
+      result.appendChild(msg);
+
+      // show a cute follow-up prompt (optional custom message)
+      const follow = document.createElement('div');
+      follow.style.fontSize = '14px';
+      follow.style.color = '#666';
+      follow.innerText = 'Want to say something? Type it below:';
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.placeholder = 'Write a short message...';
+      input.style.marginTop = '8px';
+      input.style.padding = '8px 10px';
+      input.style.width = '80%';
+      input.style.borderRadius = '8px';
+      input.style.border = '1px solid #eee';
+      result.appendChild(follow);
+      result.appendChild(input);
+
+      // Optionally show a "send" effect
+      const send = document.createElement('button');
+      send.innerText = 'Send ❤️';
+      send.style.marginTop = '8px';
+      send.style.padding = '8px 12px';
+      send.style.borderRadius = '10px';
+      send.style.border = '0';
+      send.style.background = 'linear-gradient(90deg,#ff6b6b,#ffb86b)';
+      send.style.color = '#fff';
+      send.style.cursor = 'pointer';
+      result.appendChild(send);
+
+      send.addEventListener('click', ()=>{
+        const text = input.value.trim() || 'You made my day!';
+        result.innerHTML = '<div><strong>Sent:</strong> '+escapeHtml(text)+' ✅</div>';
+        tinyHearts();
+      });
+    });
+
+    function showNoPlace(){
+      result.innerHTML = '';
+      const m = document.createElement('div');
+      m.innerHTML = '<strong>Oh no!</strong> The "No" button ran away... It went to a secret place 😄';
+      m.style.color = '#444';
+      m.style.fontSize = '15px';
+      result.appendChild(m);
+
+      const btn = document.createElement('button');
+      btn.innerText = 'Where did it go?';
+      btn.style.marginTop = '10px';
+      btn.style.padding = '8px 12px';
+      btn.style.borderRadius = '8px';
+      btn.style.border = '1px solid #eee';
+      btn.style.cursor = 'pointer';
+      result.appendChild(btn);
+
+      btn.addEventListener('click', ()=>{
+        // playful redirect: show a little "map" or new section
+        result.innerHTML = '<div style="max-width:420px;text-align:center;"><p>It escaped to the land of "Maybe Later" — but your ❤️ was safe here.</p><img style="width:100%;border-radius:10px;box-shadow:0 8px 20px rgba(0,0,0,0.08)" src="data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'600\' height=\'300\'><rect width=\'100%\' height=\'100%\' fill=\'%23fff5f0\' /><text x=\'50%\' y=\'50%\' dominant-baseline=\'middle\' text-anchor=\'middle\' font-size=\'22\' fill=\'%238b5\'>The No button is on vacation 🌴</text></svg>" alt="no-place"/></div>';
+      });
+    }
+
+    // tiny helper to prevent XSS on displayed user text
+    function escapeHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+    // Simple confetti burst using small divs
+    function confettiBurst(){
+      const colors = ['#ff6b6b','#ffd166','#06d6a0','#4d96ff','#c77dff'];
+      const N = 28;
+      for(let i=0;i<N;i++){
+        const el = document.createElement('div');
+        el.className = 'confetti-piece';
+        el.style.background = colors[i%colors.length];
+        el.style.left = '50%';
+        el.style.top = '40%';
+        el.style.opacity = 1;
+        el.style.transform = `translate(-50%,-50%) rotate(${rand(0,360)}deg)`;
+        wrap.appendChild(el);
+        // animate
+        const tx = rand(-200,200);
+        const ty = rand(-220,200);
+        const rot = rand(-720,720);
+        el.animate([
+          {transform:el.style.transform + ' translate(0px,0px)', opacity:1},
+          {transform: `translate(${tx}px, ${ty}px) rotate(${rot}deg)`, opacity:0}
+        ],{duration:1200 + rand(0,900), easing:'cubic-bezier(.2,.9,.2,1)'});
+        setTimeout(()=>el.remove(),2200);
+      }
+    }
+
+    // tiny hearts floating animation when message sent
+    function tinyHearts(){
+      const count = 12;
+      for(let i=0;i<count;i++){
+        const h = document.createElement('div');
+        h.style.position='absolute';
+        h.style.width='22px';h.style.height='22px';
+        h.style.left = rand(40,260)+'px';
+        h.style.bottom = '10px';
+        h.style.opacity = 1;
+        h.style.fontSize='18px';
+        h.style.pointerEvents='none';
+        h.innerText = '❤️';
+        wrap.appendChild(h);
+        h.animate([
+          {transform:'translateY(0px) scale(1)', opacity:1},
+          {transform:`translateY(-120px) scale(.8)`, opacity:0}
+        ],{duration:1400+rand(0,800), easing:'cubic-bezier(.2,.9,.2,1)'});
+        setTimeout(()=>h.remove(),2400);
+      }
+    }
+
+    // On load, slightly dance the yes button to attract attention
+    setTimeout(()=>{
+      yesBtn.animate([
+        {transform:'translateY(0px)'},
+        {transform:'translateY(-6px)'},
+        {transform:'translateY(0px)'}
+      ],{duration:900,iterations:1,easing:'ease-out'});
+    },600);
+
+    // If user resizes, ensure noBtn doesn't end up outside; reset if necessary
+    window.addEventListener('resize', ()=>{
+      // if noBtn is absolute and out of bounds, bring back
+      if(getComputedStyle(noBtn).position === 'absolute'){
+        const pr = wrap.getBoundingClientRect();
+        const br = noBtn.getBoundingClientRect();
+        if(br.left > pr.right || br.top > pr.bottom){
+          noBtn.style.position='static'; noBtn.style.left=''; noBtn.style.top=''; noBtn.style.transition='none';
+        }
+      }
+    });
+
+    // Accessibility: allow keyboard selection
+    noBtn.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ moveNoButton(); } });
+    yesBtn.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ yesBtn.click(); } });
+
+  </script>
+</body>
+</html>
